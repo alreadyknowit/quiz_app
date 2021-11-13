@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quiz_app/quiz_questions.dart';
 import 'constants.dart';
 // ignore_for_file: prefer_const_constructors
 
@@ -11,6 +12,56 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   List<Widget> results = [];
+  QuizData quizData = QuizData();
+  int correctAnswerCounter = 0;
+
+  void buttonFunc(bool answer) {
+    if (quizData.isDone()) {
+      //show alerDialog
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: Colors.indigo,
+              title: Text(
+                "Test is done!",
+                style: TextStyle(color: Colors.white),
+              ),
+              content: Text('Result is:$correctAnswerCounter ',
+                  style: TextStyle(color: Colors.white)),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+
+                    setState(() {
+                      //clear the list
+                      results.clear();
+                      //clear the index
+                      quizData.clearQuestionIndex();
+                    });
+                  },
+                  child: Text(
+                    'Restart',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          });
+    } else {
+      setState(() {
+        if (quizData.getAnswer() == answer) {
+          results.add(kCorrectAnswer);
+          correctAnswerCounter++;
+          quizData.nextQuestion();
+        } else {
+          results.add(kWrongAnswer);
+          quizData.nextQuestion();
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +72,7 @@ class _QuizPageState extends State<QuizPage> {
           child: Center(
             child: Container(
               child: Text(
-                'Bilgi yarışması',
+                quizData.getQuestion(),
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
@@ -29,7 +80,7 @@ class _QuizPageState extends State<QuizPage> {
         ),
         Wrap(
           spacing: 5,
-          runSpacing:100,
+          runSpacing: 5,
           children: results,
         ),
         Expanded(
@@ -43,11 +94,7 @@ class _QuizPageState extends State<QuizPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextButton(
-                      onPressed: () => setState(
-                        () {
-                          results.add(kCorrectAnswer);
-                        },
-                      ),
+                      onPressed: () => buttonFunc(true),
                       child: Icon(
                         Icons.thumb_up,
                         color: Colors.white,
@@ -64,9 +111,7 @@ class _QuizPageState extends State<QuizPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextButton(
-                      onPressed: () => setState(() {
-                        results.add(kWrongAnswer);
-                      }),
+                      onPressed: () => buttonFunc(false),
                       child: Icon(
                         Icons.thumb_down,
                         color: Colors.white,
